@@ -2,4 +2,3 @@
 let params = process.argv.slice(2);
 let formatFile = require('../src/index').formatFile;
 formatFile(params[0],params[1]);
-
