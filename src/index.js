@@ -4,7 +4,7 @@ let chalk = require('chalk');
 readFile = promisify(fs.readFile);
 
 module.exports = {
-    async  formatFile(path) {
+    async  formatFile(path, ifPrintAll) {
         function formatJson(str) {
             let result = str;
             // 兼容格式错误
@@ -105,10 +105,11 @@ module.exports = {
             colorKeyValue(['cyan', 'yellow'], '[refer:]\n', refer);
             colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
             colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
-
-            // colorFirst('custom: ', custom);
-            // colorFirst('[user:] ', user);
-            // colorFirst('[cookie:] ', cookie);
+            if (ifPrintAll) {
+                colorKeyValue(['cyan', 'yellow'], '[custom:]\n', custom);
+                colorKeyValue(['cyan', 'yellow'], '[user:]\n', user);
+                colorKeyValue(['cyan', 'yellow'], '[cookie:]\n', cookie);
+            }
 
         });
     }

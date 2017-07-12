@@ -1,4 +1,6 @@
 #!/usr/bin/env node --harmony
 let params = process.argv.slice(2);
-require('../src/index').formatFile(params[1]);
+let formatFile = require('../src/index').formatFile;
+let params = process.argv.slice(2);
+formatFile(params[0],params[1]);
 
