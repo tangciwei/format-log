@@ -24,18 +24,33 @@ module.exports = {
             let user = str.match(/user\[[^\]]*/)[0].split('[')[1];
             let refer = str.match(/refer\[[^\]]*/)[0].split('[')[1];
             let cookie = str.match(/cookie\[[^\]]*/)[0].split('[')[1];
-            let custom = str.match(/custom\[[^\]]*/)[0].split('[')[1];
 
-            let requestIndex1 = custom.indexOf('request=') + 8;
-            let requestIndex2 = custom.indexOf('response=') - 1;
-            let request = custom.slice(requestIndex1, requestIndex2);
+            let custom = str.split('custom')[1].trim();
+            if (custom.slice(-1) === '-') {
+                custom = custom.slice(0, -1).trim();
+            }
 
-            let requestIndex3 = custom.indexOf('response=') + 9;
-            let response = custom.slice(requestIndex3);
+            custom = custom.slice(1, -1);
 
-            request = formatJson(request);
-            response = formatJson(response);
+            function getStrA2B(a, b) {
+                let lenA = a.length;
+                let lenB = b.length;
+                let startA = custom.indexOf(a);
+                let endA = startA + lenA;
+                let startB = custom.indexOf(b);
+                let endB = startB + lenB;
 
+                let request = custom.slice(endA, startB).trim();
+                let response = custom.slice(endB).trim();
+                request = formatJson(request);
+                response = formatJson(response);
+                return {request, response};
+            }
+
+            let {request, response} = getStrA2B('request=', 'response=');
+            let ioData = getStrA2B('input=', 'output=');
+            let input = ioData.request;
+            let output = ioData.response;
             return {
                 logType,
                 errno,
@@ -46,7 +61,9 @@ module.exports = {
                 cookie,
                 custom,
                 request,
-                response
+                response,
+                input,
+                output
             };
         }
         function decode(str) {
@@ -94,7 +111,9 @@ module.exports = {
                 cookie,
                 custom,
                 request,
-                response
+                response,
+                input,
+                output
             } = formatOne(log);
             colorConsole('bgGreen', '[请求' + (index + 1) + ']');
 
@@ -103,8 +122,15 @@ module.exports = {
             colorKeyValue(['cyan', 'yellow'], '[logId:]', logId);
             colorKeyValue(['cyan', 'yellow'], '[uri:]\n', uri);
             colorKeyValue(['cyan', 'yellow'], '[refer:]\n', refer);
-            colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
-            colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
+            if (request !== 'undefined' && request) {
+                colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
+                colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
+            }
+            else {
+                colorKeyValue(['cyan', 'yellow'], '[input:]\n', input);
+                colorKeyValue(['cyan', 'yellow'], '[output:]\n', output);
+            }
+
             if (ifPrintAll) {
                 colorKeyValue(['cyan', 'yellow'], '[custom:]\n', custom);
                 colorKeyValue(['cyan', 'yellow'], '[user:]\n', user);
