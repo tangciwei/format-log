@@ -4,7 +4,7 @@ let chalk = require('chalk');
 readFile = promisify(fs.readFile);
 
 module.exports = {
-    async  formatFile(path, ifPrintAll) {
+    async formatFile(path, ifPrintAll) {
         function formatJson(str) {
             let result = str;
             // 兼容格式错误
@@ -25,12 +25,7 @@ module.exports = {
             let refer = str.match(/refer\[[^\]]*/)[0].split('[')[1];
             let cookie = str.match(/cookie\[[^\]]*/)[0].split('[')[1];
 
-            let custom = str.split('custom')[1].trim();
-            if (custom.slice(-1) === '-') {
-                custom = custom.slice(0, -1).trim();
-            }
-
-            custom = custom.slice(1, -1);
+            let custom = str.split('custom')[1];
 
             function getStrA2B(a, b) {
                 let lenA = a.length;
@@ -39,18 +34,44 @@ module.exports = {
                 let endA = startA + lenA;
                 let startB = custom.indexOf(b);
                 let endB = startB + lenB;
+                let request;
+                let response;
+                if (startA !== -1 && startB !== -1) {
+                    request = custom.slice(endA, startB).trim();
+                    response = custom.slice(endB).trim();
+                    request = formatJson(request);
+                    response = formatJson(response);
+                }
+                else {
+                    request = '见input';
+                    response = '见output';
+                }
 
-                let request = custom.slice(endA, startB).trim();
-                let response = custom.slice(endB).trim();
-                request = formatJson(request);
-                response = formatJson(response);
                 return {request, response};
             }
+            if (custom) {
+                custom = str.split('custom')[1].trim();
+                if (custom.slice(-1) === '-') {
+                    custom = custom.slice(0, -1).trim();
+                }
 
-            let {request, response} = getStrA2B('request=', 'response=');
-            let ioData = getStrA2B('input=', 'output=');
-            let input = ioData.request;
-            let output = ioData.response;
+                custom = custom.slice(1, -1);
+                let {request, response} = getStrA2B('request=', 'response=');
+
+                return {
+                    logType,
+                    errno,
+                    logId,
+                    uri,
+                    user,
+                    refer,
+                    cookie,
+                    custom,
+                    request,
+                    response
+                };
+            }
+
             return {
                 logType,
                 errno,
@@ -59,16 +80,14 @@ module.exports = {
                 user,
                 refer,
                 cookie,
-                custom,
-                request,
-                response,
-                input,
-                output
+                custom
             };
         }
+
         function decode(str) {
             return decodeURIComponent(unescape(unescape(str)));
         }
+
         function colorConsole(color, str) {
             let arr = [...arguments];
             arr.shift();
@@ -99,42 +118,36 @@ module.exports = {
         let logArr = fileContent.split('\n');
 
         logArr.forEach((log, index) => {
+
             log = decode(log);
+            if (log) {
+                let {
+                    logType,
+                    errno,
+                    logId,
+                    uri,
+                    user,
+                    refer,
+                    cookie,
+                    custom,
+                    request,
+                    response
+                } = formatOne(log);
+                colorConsole('bgGreen', '[请求' + (index + 1) + ']');
 
-            let {
-                logType,
-                errno,
-                logId,
-                uri,
-                user,
-                refer,
-                cookie,
-                custom,
-                request,
-                response,
-                input,
-                output
-            } = formatOne(log);
-            colorConsole('bgGreen', '[请求' + (index + 1) + ']');
-
-            colorKeyValue(['cyan', 'yellow'], '[logType:]', logType);
-            colorKeyValue(['cyan', 'yellow'], '[errno:]', errno);
-            colorKeyValue(['cyan', 'yellow'], '[logId:]', logId);
-            colorKeyValue(['cyan', 'yellow'], '[uri:]\n', uri);
-            colorKeyValue(['cyan', 'yellow'], '[refer:]\n', refer);
-            if (request !== 'undefined' && request) {
+                colorKeyValue(['cyan', 'yellow'], '[logType:]', logType);
+                colorKeyValue(['cyan', 'yellow'], '[errno:]', errno);
+                colorKeyValue(['cyan', 'yellow'], '[logId:]', logId);
+                colorKeyValue(['cyan', 'yellow'], '[uri:]\n', uri);
+                colorKeyValue(['cyan', 'yellow'], '[refer:]\n', refer);
                 colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
                 colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
-            }
-            else {
-                colorKeyValue(['cyan', 'yellow'], '[input:]\n', input);
-                colorKeyValue(['cyan', 'yellow'], '[output:]\n', output);
-            }
 
-            if (ifPrintAll) {
-                colorKeyValue(['cyan', 'yellow'], '[custom:]\n', custom);
-                colorKeyValue(['cyan', 'yellow'], '[user:]\n', user);
-                colorKeyValue(['cyan', 'yellow'], '[cookie:]\n', cookie);
+                if (ifPrintAll) {
+                    colorKeyValue(['cyan', 'yellow'], '[custom:]\n', custom);
+                    colorKeyValue(['cyan', 'yellow'], '[user:]\n', user);
+                    colorKeyValue(['cyan', 'yellow'], '[cookie:]\n', cookie);
+                }
             }
 
         });
