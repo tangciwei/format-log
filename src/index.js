@@ -36,6 +36,8 @@ module.exports = {
                 let endB = startB + lenB;
                 let request;
                 let response;
+                let input;
+                let output;
                 if (startA !== -1 && startB !== -1) {
                     request = custom.slice(endA, startB).trim();
                     response = custom.slice(endB).trim();
@@ -43,11 +45,38 @@ module.exports = {
                     response = formatJson(response);
                 }
                 else {
-                    request = '见input';
-                    response = '见output';
-                }
+                    // input/putput
+                    a = 'input';
+                    b = 'output';
+                    let lenA = a.length;
+                    let lenB = b.length;
+                    let startA = custom.indexOf(a);
+                    let endA = startA + lenA;
 
-                return {request, response};
+                    let startB = custom.indexOf(b);
+                    let endB = startB + lenB;
+
+                    // todo: 不严谨，不一定正确
+                    let startC = custom.indexOf('} bid');
+                    if (startC === -1) {
+                        startC = custom.indexOf('} timeCost');
+                        if (startC === -1) {
+                            startC = custom.indexOf('}]');
+                            if (startC === -1) {
+                                startC = custom.indexOf('} ');
+                            }
+                        }
+                    }
+
+                    if (startA !== -1 && startB !== -1) {
+                        input = custom.slice(endA + 1, startB).trim();
+                        output = custom.slice(endB + 1, startC + 1).trim();
+
+                        input = formatJson(input);
+                        output = formatJson(output);
+                    }
+                }
+                return {request, response, input, output};
             }
             if (custom) {
                 custom = str.split('custom')[1].trim();
@@ -56,7 +85,12 @@ module.exports = {
                 }
 
                 custom = custom.slice(1, -1);
-                let {request, response} = getStrA2B('request=', 'response=');
+                let {
+                    request,
+                    response,
+                    input,
+                    output
+                } = getStrA2B('request=', 'response=');
 
                 return {
                     logType,
@@ -68,7 +102,9 @@ module.exports = {
                     cookie,
                     custom,
                     request,
-                    response
+                    response,
+                    input,
+                    output
                 };
             }
 
@@ -80,7 +116,9 @@ module.exports = {
                 user,
                 refer,
                 cookie,
-                custom
+                custom,
+                input,
+                output
             };
         }
 
@@ -116,7 +154,7 @@ module.exports = {
 
         let fileContent = await readFile(path, 'utf8');
         let logArr = fileContent.split('\n');
-
+        colorConsole('yellow', '分割线=================================\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
         logArr.forEach((log, index) => {
 
             log = decode(log);
@@ -131,7 +169,9 @@ module.exports = {
                     cookie,
                     custom,
                     request,
-                    response
+                    response,
+                    input,
+                    output
                 } = formatOne(log);
                 colorConsole('bgGreen', '[请求' + (index + 1) + ']');
 
@@ -140,8 +180,14 @@ module.exports = {
                 colorKeyValue(['cyan', 'yellow'], '[logId:]', logId);
                 colorKeyValue(['cyan', 'yellow'], '[uri:]\n', uri);
                 colorKeyValue(['cyan', 'yellow'], '[refer:]\n', refer);
-                colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
-                colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
+                if (request) {
+                    colorKeyValue(['cyan', 'yellow'], '[request:]\n', request);
+                    colorKeyValue(['cyan', 'yellow'], '[response:]\n', response);
+                }
+                else {
+                    colorKeyValue(['cyan', 'yellow'], '[input:]\n', input);
+                    colorKeyValue(['cyan', 'yellow'], '[output:]\n', output);
+                }
 
                 if (ifPrintAll) {
                     colorKeyValue(['cyan', 'yellow'], '[custom:]\n', custom);
