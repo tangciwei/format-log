@@ -154,7 +154,9 @@ module.exports = {
 
         let fileContent = await readFile(path, 'utf8');
         let logArr = fileContent.split('\n');
-        colorConsole('yellow', '分割线=================================\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+        let time = new Date();
+        time=time.getHours()+':'+time.getMinutes()+':'+time.getSeconds();
+        colorConsole('yellow', '分割线=='+time+'===============================\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
         logArr.forEach((log, index) => {
 
             log = decode(log);
